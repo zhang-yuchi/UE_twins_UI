@@ -1,0 +1,476 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<script>
+// create the global ue5(...) helper function
+"object"!=typeof ue&&(ue={}),uuidv4=function(){return"10000000-1000-4000-8000-100000000000".replace(/[018]/g,function(t){return(t^crypto.getRandomValues(new Uint8Array(1))[0]&15>>t/4).toString(16)})},ue5=function(r){return"object"!=typeof ue.interface||"function"!=typeof ue.interface.broadcast?(ue.interface={},function(t,e,n,o){var u,i;"string"==typeof t&&("function"==typeof e&&(o=n,n=e,e=null),u=[t,"",r(n,o)],void 0!==e&&(u[1]=e),i=encodeURIComponent(JSON.stringify(u)),"object"==typeof history&&"function"==typeof history.pushState?(history.pushState({},"","#"+i),history.pushState({},"","#"+encodeURIComponent("[]"))):(document.location.hash=i,document.location.hash=encodeURIComponent("[]")))}):(i=ue.interface,ue.interface={},function(t,e,n,o){var u;"string"==typeof t&&("function"==typeof e&&(o=n,n=e,e=null),u=r(n,o),void 0!==e?i.broadcast(t,JSON.stringify(e),u):i.broadcast(t,"",u))});var i}(function(t,e){if("function"!=typeof t)return"";var n=uuidv4();return ue.interface[n]=t,setTimeout(function(){delete ue.interface[n]},1e3*Math.max(1,parseInt(e)||0)),n});
+</script>
+<link rel="stylesheet" href="css/index.css">
+<script src="https://www.jq22.com/jquery/jquery-1.10.2.js"></script>
+<link rel="stylesheet" href="css/main.css">
+<script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+<script>
+// called in-game via blueprints
+ue.interface.setFPS = function(fps)
+{
+    // set element text
+    $("#fpsMeter").text(fps.toFixed(1) + " FPS");
+};
+ue.interface.setVolume = function(val)
+{
+    // set range value
+    $("#volumeSlider").val(val);
+};
+
+// delay until browser is ready
+jQuery(function()
+{
+    $("#playGame").click(function(e)
+    {
+        $("#logo").fadeOut(1000);
+        $("#playGame").fadeOut(1000);
+        $("#quitGame").fadeOut(1000);
+        $("#volumeSlider").fadeOut(500);
+        // executed in blueprints
+        ue5("play");
+    });
+
+    $("#quitGame").click(function(e)
+    {
+        // executed in blueprints
+        ue5("quit");
+    });
+
+    $("#volumeSlider").on("input", function(e)
+    {
+        // executed in blueprints
+        ue5("volume", parseFloat($(this).val()));
+    });
+
+    // notify blueprint that browser is ready
+    ue5("ready");
+
+    // delay for 1 sec
+    setTimeout(function()
+    {
+        // transmit data to the game
+        ue5("print",
+        {
+            "browser": navigator.userAgent,
+            "time": Date.now()
+        });
+    },
+    1000);
+});
+</script>
+</head>
+<style>
+
+    
+</style>
+<body>
+    <div id="app" class="content-body">
+        <div class="header">
+            <div class="header-left">
+                <div class="header-box">
+                    <span>数字孪生青衣江</span>
+                    <div class="header-btns">
+                        <div class="header-btn" @click="openStationWindow">流域水电站</div>
+                        <div class="header-btn" @click="openHyStationWindow">流域水文站</div>
+                        <div class="header-btn" @click="openProcessing">洪水预演</div>
+                        <div class="header-btn">智能问答</div>
+                    </div>
+                </div>
+            </div>
+            <div class="header-time">
+                <span id="time">2023/4/30 17:00:12</span>
+            </div>
+        </div>
+        <div class="content">
+            <div class="content-con">
+                <div class="left-body">
+                    <div class="left-top public-bg" style="position: relative;">
+                        <div class="public-title">流域基本信息</div>
+                        <div style="padding:10px">
+                            <div class="base-top-body">
+                                <div class="module-btn">干支流</div>
+                                <div class="base-info-box">
+                                    <div class="base-info-item">
+                                        <h6>流域面积</h6>
+                                        <span style="color:#5dcbf5;"><b>12928</b>km2</span>
+                                        <img src="image/pictre.png" >
+                                    </div>
+                                </div>
+                                <div class="base-info-box">
+                                    <div class="base-info-item">
+                                        <h6>平均比降</h6>
+                                        <span style="color:#5dcbf5;"><b>12.9</b>‰</span>
+                                        <img src="image/pictre.png" >
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="base-info-box" style="margin-top: 30px;">
+                                <div class="base-info-item2">
+                                    <h6>流域地理坐标</h6>
+                                    <div><span style="color:#5dcbf5;"><b>东经102°17′～103°42′</b></span></div>
+                                    <div style="margin-top:10px;"></div>
+                                    <span style="color:#5dcbf5;"><b>北纬29°25′～30°56′</b></span>
+                                    <!-- <img src="image/pictre.png" > -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <div class="left-con public-bg" style="position: relative;">
+                        <div class="public-title">流域工情</div>
+                        <div class="module-btn">水电站</div>
+                        <div class="station-total"  >
+                            <div class="station-dig" id="pjstxl" style="height:220px;position:absolute;top:10px;width:100%;">
+                            </div>
+                            
+                        </div>
+                        <div class="station-curve" style="height:180px" id="shengtailiuliang"></div>
+                    </div>
+                    <div class="left-bottom public-bg" style="position: relative;">
+                        <div class="public-title">流域水情</div>
+                        <div class="module-btn">水文站</div>
+                        <div class="title-nav" id="shuiqing" style="height:250px;width:95%"></div>
+                    </div>
+                </div>
+                <div class="center-body">
+                    <!-- <div class="map" id="map"></div> -->
+                </div>
+    
+                <div class="right-body">
+                    <div class="right-top public-bg">
+                        <div class="public-title">天气情况</div>
+                        <div class="itemCon itembg">
+                            <div class="infoPie">
+                                <ul class="clearfix">
+                                    <li class="color-yellow">
+                                        <span class="border-yellow" id="indicator1" total="32">25</span>
+                                        <p>设备在线数</p>
+                                    </li>
+                                    <li class="color-green">
+                                        <span class="border-green" id="indicator2" total="65">10</span>
+                                        <p>本月降雨次数</p>
+                                    </li>
+                                    <li class="color-blue">
+                                        <span class="border-blue" id="indicator3" total="100">10</span>
+                                        <p>流速峰值</p>
+                                    </li>
+                                </ul>
+                                <div id="indicatorContainer"></div>
+                            </div>
+                        </div>
+                        <div class="weather-box">
+                            <div class="">
+                                <ul class="listStyle">
+                                    <li class="clearfix">
+                                        <span >白天天气:<strong>晴</strong></span>
+                                        <span >晚上天气:<strong>小雨</strong></span>
+                                        <span >降水概率:<strong>61%</strong></span>
+                                        <span >大气压:<strong>101KPa</strong></span>
+                                        <span >空气湿度:<strong>56%</strong></span>
+                                        <span >风向:<strong>南风</strong></span>
+                                        <span >风力:<strong>1级</strong></span>
+                                        <span >空气质量指数:<strong>38</strong></span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="right-con public-bg">
+                        <div class="public-title">预警信息</div>
+                        <div class="title-nav" >
+                            <div class="top5-ul">
+                                <ul>
+                                    <li>
+                                        <span>1</span>
+                                        <span style="background-color: #d89346;">严重</span>
+                                        <span>雅安市</span>
+                                        <span>雨城区</span>
+                                        <span>洪水预警</span>
+                                        <span>1500m3/s</span>
+                                    </li>
+                                    <li>
+                                        <span>2</span>
+                                        <span style="background-color: #d89346;">严重</span>
+                                        <span>雅安市</span>
+                                        <span>雨城区</span>
+                                        <span>洪水预警</span>
+                                        <span>1500m3/s</span>
+                                    </li>
+                                    <li>
+                                        <span>3</span>
+                                        <span style="background-color: #1db5ea;">中度</span>
+                                        <span>雅安市</span>
+                                        <span>名山区</span>
+                                        <span>洪水预警</span>
+                                        <span>800.17m3/s</span>
+                                    </li>
+                                    <li>
+                                        <span>4</span>
+                                        <span style="background-color: #1db5ea;">中度</span>
+                                        <span>雅安市</span>
+                                        <span>名山区</span>
+                                        <span>洪水预警</span>
+                                        <span>700.15m3/s</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="right-bottom public-bg">
+                        <div class="public-title">预案信息</div>
+                        <div class="yuan-container">
+                            <div class="yuan-box">
+                                <div class="yuan-item color-blue" style="font-weight:bold;">
+                                    洪水预案
+                                </div>
+                                <div class="yuan-item">
+                                    雅安市雨城区
+                                </div>
+                                <div class="yuan-item">
+                                    2023-4-26
+                                </div>
+                                <div class="yuan-item">
+                                    10:30-12:00
+                                </div>
+                            </div>
+                            <div class="yuan-box">
+                                <div class="yuan-item color-blue" style="font-weight:bold;">
+                                    洪水预案
+                                </div>
+                                <div class="yuan-item">
+                                    雅安市雨城区
+                                </div>
+                                <div class="yuan-item">
+                                    2023-4-26
+                                </div>
+                                <div class="yuan-item">
+                                    10:30-12:00
+                                </div>
+                            </div>
+                            <div class="yuan-box">
+                                <div class="yuan-item color-blue" style="font-weight:bold;">
+                                    洪水预案
+                                </div>
+                                <div class="yuan-item">
+                                    雅安市雨城区
+                                </div>
+                                <div class="yuan-item">
+                                    2023-4-26
+                                </div>
+                                <div class="yuan-item">
+                                    10:30-12:00
+                                </div>
+                            </div>
+                            <div class="yuan-box">
+                                <div class="yuan-item color-blue" style="font-weight:bold;">
+                                    洪水预案
+                                </div>
+                                <div class="yuan-item">
+                                    雅安市雨城区
+                                </div>
+                                <div class="yuan-item">
+                                    2023-4-26
+                                </div>
+                                <div class="yuan-item">
+                                    10:30-12:00
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 水电站 -->
+        <div class="dlg-window" v-show="isStationOpen">
+            <div class="dlg-down-btn" @click="closeStationWindow">关闭</div>
+            <div class="dlg-title">流域水电站列表</div>
+            <div style="padding:0 14px;">
+                <div class="dlg-item">
+                    <span style="width:100px" class="station-header ">水津关电站</span>
+                    <span style="width:100px">闸门 <span class="color-green">0/18</span></span>
+                    <span style="width:200px">当前生态流量 <span class="color-green">1300m3/s</span></span>
+                    <span class="goto-btn" style="width:50px;cursor:pointer">前往</span>
+                </div>
+                <div class="dlg-item">
+                    <span style="width:100px" class="station-header ">大兴电站</span>
+                    <span style="width:100px">闸门 <span class="color-green">0/10</span></span>
+                    <span style="width:200px">当前生态流量 <span class="color-green">1300m3/s</span></span>
+                    <span class="goto-btn" style="width:50px;cursor:pointer">前往</span>
+                </div>
+                <div class="dlg-item">
+                    <span style="width:100px" class="station-header ">甘溪坡电站</span>
+                    <span style="width:100px">闸门 <span class="color-green">0/10</span></span>
+                    <span style="width:200px">当前生态流量 <span class="color-green">1300m3/s</span></span>
+                    <span class="goto-btn" style="width:50px;cursor:pointer">前往</span>
+                </div>
+                <div class="dlg-item">
+                    <span style="width:100px" class="station-header ">楼方电站</span>
+                    <span style="width:100px">闸门 <span class="color-green">0/10</span></span>
+                    <span style="width:200px">当前生态流量 <span class="color-green">1300m3/s</span></span>
+                    <span class="goto-btn" style="width:50px;cursor:pointer">前往</span>
+                </div>
+                <div class="dlg-item">
+                    <span style="width:100px" class="station-header ">小关子电站</span>
+                    <span style="width:100px">闸门 <span class="color-green">0/10</span></span>
+                    <span style="width:200px">当前生态流量 <span class="color-green">1300m3/s</span></span>
+                    <span class="goto-btn" style="width:50px;cursor:pointer">前往</span>
+                </div>
+                <div class="dlg-item">
+                    <span style="width:100px" class="station-header ">下村电站</span>
+                    <span style="width:100px">闸门 <span class="color-green">0/10</span></span>
+                    <span style="width:200px">当前生态流量 <span class="color-green">1300m3/s</span></span>
+                    <span class="goto-btn" style="width:50px;cursor:pointer">前往</span>
+                </div>
+                <div class="dlg-item">
+                    <span style="width:100px" class="station-header ">花滩电站</span>
+                    <span style="width:100px">闸门 <span class="color-green">0/10</span></span>
+                    <span style="width:200px">当前生态流量 <span class="color-green">1300m3/s</span></span>
+                    <span class="goto-btn" style="width:50px;cursor:pointer">前往</span>
+                </div>
+                <div class="dlg-item">
+                    <span style="width:100px" class="station-header ">长石坝电站</span>
+                    <span style="width:100px">闸门 <span class="color-green">0/10</span></span>
+                    <span style="width:200px">当前生态流量 <span class="color-green">1300m3/s</span></span>
+                    <span class="goto-btn" style="width:50px;cursor:pointer">前往</span>
+                </div>
+            </div>
+
+        </div>
+        <!-- 水文站 -->
+        <div class="dlg-window1" v-show="isHyStationOpen">
+            <div class="dlg-down-btn" @click="closeHyStationWindow">关闭</div>
+            <div class="dlg-title">流域水文站列表</div>
+            <div style="padding:0 14px;">
+                <div class="dlg-item">
+                    <span style="width:120px" class="station-header ">多营坪水文站</span>
+                    <span style="width:160px">所属河流 <span class="color-green">青衣江</span></span>
+                    <span style="width:190px">当前径流量 <span class="color-green">1300m3/s</span></span>
+                    <span class="goto-btn" style="width:50px;cursor:pointer">前往</span>
+                </div>
+                <div class="dlg-item">
+                    <span style="width:120px" class="station-header ">洪雅水文站</span>
+                    <span style="width:160px">所属河流 <span class="color-green">青衣江</span></span>
+                    <span style="width:190px">当前径流量 <span class="color-green">1300m3/s</span></span>
+                    <span class="goto-btn" style="width:50px;cursor:pointer">前往</span>
+                </div>
+                <div class="dlg-item">
+                    <span style="width:120px" class="station-header ">夹江水文站</span>
+                    <span style="width:160px">所属河流 <span class="color-green">青衣江</span></span>
+                    <span style="width:190px">当前径流量 <span class="color-green">1300m3/s</span></span>
+                    <span class="goto-btn" style="width:50px;cursor:pointer">前往</span>
+                </div>
+                <div class="dlg-item">
+                    <span style="width:120px" class="station-header ">宝兴水文站</span>
+                    <span style="width:160px">所属河流 <span class="color-green">宝兴河</span></span>
+                    <span style="width:190px">当前径流量 <span class="color-green">1300m3/s</span></span>
+                    <span class="goto-btn" style="width:50px;cursor:pointer">前往</span>
+                </div>
+                <div class="dlg-item">
+                    <span style="width:120px" class="station-header ">芦山水文站</span>
+                    <span style="width:160px">所属河流 <span class="color-green">芦山河</span></span>
+                    <span style="width:190px">当前径流量 <span class="color-green">1300m3/s</span></span>
+                    <span class="goto-btn" style="width:50px;cursor:pointer">前往</span>
+                </div>
+                <div class="dlg-item">
+                    <span style="width:120px" class="station-header ">天全水文站</span>
+                    <span style="width:160px">所属河流 <span class="color-green">天全河</span></span>
+                    <span style="width:190px">当前径流量 <span class="color-green">1300m3/s</span></span>
+                    <span class="goto-btn" style="width:50px;cursor:pointer">前往</span>
+                </div>
+                <div class="dlg-item">
+                    <span style="width:120px" class="station-header ">荥经水文站</span>
+                    <span style="width:160px">所属河流 <span class="color-green">荥经河</span></span>
+                    <span style="width:190px">当前径流量 <span class="color-green">1300m3/s</span></span>
+                    <span class="goto-btn" style="width:50px;cursor:pointer">前往</span>
+                </div>
+                <div class="dlg-item">
+                    <span style="width:120px" class="station-header ">孔坪水文站</span>
+                    <span style="width:160px">所属河流 <span class="color-green">周公河</span></span>
+                    <span style="width:190px">当前径流量 <span class="color-green">1300m3/s</span></span>
+                    <span class="goto-btn" style="width:50px;cursor:pointer">前往</span>
+                </div>
+                <div class="dlg-item">
+                    <span style="width:120px" class="station-header ">陇西水文站</span>
+                    <span style="width:160px">所属河流 <span class="color-green">陇西河</span></span>
+                    <span style="width:190px">当前径流量 <span class="color-green">1300m3/s</span></span>
+                    <span class="goto-btn" style="width:50px;cursor:pointer">前往</span>
+                </div>
+                <div class="dlg-item">
+                    <span style="width:120px" class="station-header ">名山水文站</span>
+                    <span style="width:160px">所属河流 <span class="color-green">名山河</span></span>
+                    <span style="width:190px">当前径流量 <span class="color-green">1300m3/s</span></span>
+                    <span class="goto-btn" style="width:50px;cursor:pointer">前往</span>
+                </div>
+                <div class="dlg-item">
+                    <span style="width:120px" class="station-header ">天宫水文站</span>
+                    <span style="width:160px">所属河流 <span class="color-green">花溪河</span></span>
+                    <span style="width:190px">当前径流量 <span class="color-green">1300m3/s</span></span>
+                    <span class="goto-btn" style="width:50px;cursor:pointer">前往</span>
+                </div>
+                <div class="dlg-item">
+                    <span style="width:120px" class="station-header ">仁美水文站</span>
+                    <span style="width:160px">所属河流 <span class="color-green">安溪河</span></span>
+                    <span style="width:190px">当前径流量 <span class="color-green">1300m3/s</span></span>
+                    <span class="goto-btn" style="width:50px;cursor:pointer">前往</span>
+                </div>
+            </div>
+
+        </div>
+        <div class="time-line" v-show="readyProcessing">
+            <img v-if="!isPlay" @click="playModel" class="play-btn" src="./image/play.png" alt="">
+            <img v-if="isPlay" @click="stopModel" class="play-btn" src="./image/stop.png" alt="">
+            <div class="processing">
+                <img class="processing-loc" :style="procLocStyle" src="./image/location.png"/>
+                <div class="time-processing"></div>
+                <div class="time-stamp" style="left:-20px;"><div class="lines-clip"></div>26日11:00</div>
+                <div class="time-stamp" style="left:33%;"><div class="lines-clip"></div>26日12:00</div>
+                <div class="time-stamp" style="left:66%;"><div class="lines-clip"></div>26日13:00</div>
+                <div class="time-stamp" style="left:90%;"><div class="lines-clip"></div>26日14:00</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+<script src="./js/vue.js"></script>
+<script src="https://www.jq22.com/jquery/echarts-4.2.1.min.js"></script>
+
+<!-- <script type="text/javascript" src="js/china.js"></script> -->
+<!-- 主页面的演示 -->
+<script type="text/javascript" src="js/index.js"></script>
+<!-- 其余页面的演示 -->
+<script type="text/javascript" src="js/total_charts.js"></script>
+<script>
+    //顶部时间
+    function getTime(){
+        var myDate = new Date();
+        var myYear = myDate.getFullYear(); //获取完整的年份(4位,1970-????)
+        var myMonth = myDate.getMonth()+1; //获取当前月份(0-11,0代表1月)
+        var myToday = myDate.getDate(); //获取当前日(1-31)
+        var myDay = myDate.getDay(); //获取当前星期X(0-6,0代表星期天)
+        var myHour = myDate.getHours(); //获取当前小时数(0-23)
+        var myMinute = myDate.getMinutes(); //获取当前分钟数(0-59)
+        var mySecond = myDate.getSeconds(); //获取当前秒数(0-59)
+        var week = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六'];
+        var nowTime;
+
+        nowTime = myYear+'年'+fillZero(myMonth)+'月'+fillZero(myToday)+'日'+'&nbsp;&nbsp;'+fillZero(myHour)+':'+fillZero(myMinute)+':'+fillZero(mySecond)+'&nbsp;&nbsp;'+week[myDay]+'&nbsp;&nbsp;';
+        //console.log(nowTime);
+        $('#time').html(nowTime);
+    };
+    function fillZero(str){
+        var realNum;
+        if(str<10){
+            realNum	= '0'+str;
+        }else{
+            realNum	= str;
+        }
+        return realNum;
+    }
+    setInterval(getTime,1000);
+
+</script>
